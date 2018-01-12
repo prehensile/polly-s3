@@ -1,0 +1,46 @@
+{
+  "name": "polly-s3",
+  "main": "./src/polly",
+  "version": "0.1",
+  "description": "polly-s3 - A library which uses AWS Polly to render text to speech to audio files in an S3 bucket.",
+  "homepage": "https://github.com/prehensile/polly-s3",
+  "author": "Victor Quinn <mail@victorquinn.com>",
+  "bugs": {
+    "url": "https://github.com/prehensile/polly-s3/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prehensile/polly-s3/chancejs.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+  },
+  "scripts": {
+  },
+  "keywords": [
+    "s3",
+    "polly",
+    "voice",
+    "tts",
+    "aws"
+    "text-to-speech"
+  ],
+  "jam": {
+    "main": "./src/polly-s3.js"
+  },
+  "github": "https://github.com/prehensile/polly-s3",
+  "maintainers": [
+    {
+      "name": "Henry Cooke",
+      "email": "me@prehensile.co.uk",
+      "web": "http://www.prehensile.co.uk"
+    }
+  ],
+  "spm": {
+    "main": "src/polly-s3.js",
+    "ignore": [
+      "test"
+    ]
+  },
+  "dependencies": {}
+}
