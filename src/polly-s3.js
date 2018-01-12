@@ -7,28 +7,27 @@ function parseOption( optionKey, defaultValue, options ){
 
 function PollyS3( options ){
     
+    options = initOptions( options );
+
+    this._polly = new AWS.Polly( options );
+    this._s3 = new AWS.S3( options );
+
+    this._speechBucket = options.s3Bucket;
     this.defaultVoice = parseOption( "voice", "Brian", options );
-
-    // var awsDefaults = {
-    //     accessKeyId : secrets.AWSPolly.AccessKey,
-    //     secretAccessKey : secrets.AWSPolly.Secret,
-    //     region : "eu-west-1"
-    // };
-
-    //var c = new AWS.SharedIniFileCredentials();
-    var pollyRegion = parseOption( "pollyRegion", "eu-west-1", options );
-    this._polly = initPolly( options );
-    this._s3 = new AWS.S3();
-
-    this._speechBucket = parseOption( "speechBucket", null, options );
-
-    // probably not right?
-    this._urlBucketRoot = this._speechBucket;
 }
 
-function initPolly( options ){
-  var p = new AWS.Polly( options );
-  return p;
+function initOptions( options ){
+  if( !options ) options = {};
+
+  // try to get region from standard AWS env if we don't have one
+  if ( !('region' in options) )
+    options.region = process.env.AWS_DEFAULT_REGION;
+
+  // try to get S3 bucket from  env if we don't have one
+  if ( !('s3Bucket' in options) )
+    options.s3Bucket = process.env.AWS_S3_DEFAULT_BUCKET;
+  
+  return options;
 }
 
 /**
@@ -46,13 +45,15 @@ function keyForSentence( sentence, voice ){
 }
 
 
-function bucketURLForKey( key ){
-    return this._urlBucketRoot + key;
+function bucketURLForKey( bucket, key ){
+    // TODO: I am suspicious about generating URLs this way,
+    // but according to AWS docs it should work, see:
+    // https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro
+    return "https://" + bucket + ".s3.amazonaws.com/" + key;
 }
 
 
 function itPutsTheStreamInTheBucket( s3, bucket, stream, key, contentType, callback ){
-
     s3.upload(
         {
             Bucket : bucket,
@@ -60,19 +61,14 @@ function itPutsTheStreamInTheBucket( s3, bucket, stream, key, contentType, callb
             Body : stream,
             ContentType : contentType
         },
-        function( err, data ) {
-            if( err ) callback( err );
-            else {
-                callback( null );
-            }
-        }
+        callback
     );
-}
+};
 
 
 const volume = "+20dB";
 
-function renderSentenceForRealsies( polly, s3, sentence, voice, filename, callback ){
+function renderSentenceForRealsies( polly, s3, bucket, sentence, voice, filename, callback ){
     
     // wrap text in prosody element to boost volume to match alexa's voice
     sentence = `<speak><prosody volume='${volume}'>${sentence}</prosody></speak>`;
@@ -89,6 +85,7 @@ function renderSentenceForRealsies( polly, s3, sentence, voice, filename, callba
             else {
                 itPutsTheStreamInTheBucket(
                     s3,
+                    bucket,
                     data.AudioStream,
                     filename,
                     data.ContentType,
@@ -110,36 +107,45 @@ var pp = PollyS3.prototype;
  */
 pp.renderSentence = function( sentence, callback, voice ){
     
-    var filename = keyForSentence( sentence, voice ) + ".mp3";
-    var fileURL = bucketURLForKey( filename );
-
     if( !voice ) voice = this.defaultVoice;
+    var filename = keyForSentence( sentence, voice ) + ".mp3";
+    var ref = this;
+    var bucket = this._speechBucket;
 
     // before rendering, check if this sentence is already in S3
     this._s3.headObject( 
         {
-            Bucket: this._speechBucket,
+            Bucket: bucket,
             Key: filename
         },
         function( err, data ) {
-            
             if( err ){
-                // error! object probably doesn't exist, so render it
-                renderSentenceForRealsies(
-                    this._polly,
-                    this._s3,
+                // error!
+                if( err.code == 'NotFound' ){
+                  // object doesn't exist, so render it 
+                  // console.log( "Object does not exist in bucket [", bucket, "] for key [", filename, "], generating..." );
+                  renderSentenceForRealsies(
+                    ref._polly,
+                    ref._s3,
+                    bucket,
                     sentence,
                     voice,
                     filename,
-                    function(err){
+                    function( err, data ){
                         if( err ) callback( err );
-                        else callback( null, fileURL );
+                        else callback( null, data.Location );
                     }
-                );
-            
+                  );
+                } else {
+                  // error isn't useful to us, so throw it
+                  throw( err );
+                }  
             } else {
-                // success! object exists, so let's callback immediately.
-                callback( null, fileURL );
+                // console.log( "Object already exists in bucket [", bucket, "] for key [", filename, "]" );
+                // no error. object exists, so let's callback immediately.
+                // TODO: is there a better way to get the URL to the object?
+                // see: 
+                callback( null, bucketURLForKey( bucket, filename) );
             }
         }
     );
