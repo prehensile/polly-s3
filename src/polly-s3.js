@@ -1,6 +1,13 @@
-function PollyS3( speechBucket ){
+var AWS = require('aws-sdk');
+
+function parseOption( optionKey, defaultValue, options ){
+  if( optionKey in options ) return optionKey;
+  return defaultValue;
+}
+
+function PollyS3( options ){
     
-    this.defaultVoice = "Brian";
+    this.defaultVoice = parseOption( "voice", "Brian", options );
 
     // var awsDefaults = {
     //     accessKeyId : secrets.AWSPolly.AccessKey,
@@ -8,8 +15,10 @@ function PollyS3( speechBucket ){
     //     region : "eu-west-1"
     // };
 
-    this._polly = new AWS.Polly( awsDefaults );
-    this._s3 = new AWS.S3( awsDefaults );
+    this._polly = initPolly(
+      parseOption( "pollyRegion", "eu-west-1", options )
+    );
+    this._s3 = new AWS.S3();
 
     this._speechBucket = speechBucket;
 
@@ -17,8 +26,14 @@ function PollyS3( speechBucket ){
     this._urlBucketRoot = speechBucket;
 }
 
-var pp = PollyS3.prototype;
-
+function initPolly( pollyRegion, awsDefaults ){
+  var c = new AWS.SharedIniFileCredentials();
+  var options = {
+    "region" : pollyRegion
+  };
+  var p = new AWS.Polly( options );
+  return p;
+}
 
 /**
  *  Generate an S3 key for rendered speech.
@@ -87,6 +102,9 @@ function renderSentenceForRealsies( polly, s3, sentence, voice, filename, callba
         }
     );
 }
+
+
+var pp = PollyS3.prototype;
 
 /**
  *  Render some speech.
@@ -165,7 +183,7 @@ pp.describeVoices = function( callback, language ){
     ]
    }
    */
-    polly.describeVoices( params, callback );
+  this._polly.describeVoices( params, callback );
 
 }; 
 
