@@ -129,7 +129,44 @@ pp.renderSentence = function( sentence, callback, voice ){
             }
         }
     );
-}
+};
 
+pp.describeVoices = function( callback, language ){
+
+    var params = {};
+    if( language ){
+        params[ "LanguageCode" ] = language;
+    }
+
+    /*
+   data = {
+    Voices: [
+       {
+      Gender: "Female", 
+      Id: "Emma", 
+      LanguageCode: "en-GB", 
+      LanguageName: "British English", 
+      Name: "Emma"
+     }, 
+       {
+      Gender: "Male", 
+      Id: "Brian", 
+      LanguageCode: "en-GB", 
+      LanguageName: "British English", 
+      Name: "Brian"
+     }, 
+       {
+      Gender: "Female", 
+      Id: "Amy", 
+      LanguageCode: "en-GB", 
+      LanguageName: "British English", 
+      Name: "Amy"
+     }
+    ]
+   }
+   */
+    polly.describeVoices( params, callback );
+
+}; 
 
 module.exports = PollyS3;
