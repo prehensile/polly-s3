@@ -1,7 +1,7 @@
 var AWS = require('aws-sdk');
 
 function parseOption( optionKey, defaultValue, options ){
-  if( optionKey in options ) return optionKey;
+  if( options && optionKey in options ) return optionKey;
   return defaultValue;
 }
 
@@ -15,22 +15,18 @@ function PollyS3( options ){
     //     region : "eu-west-1"
     // };
 
-    this._polly = initPolly(
-      parseOption( "pollyRegion", "eu-west-1", options )
-    );
+    //var c = new AWS.SharedIniFileCredentials();
+    var pollyRegion = parseOption( "pollyRegion", "eu-west-1", options );
+    this._polly = initPolly( options );
     this._s3 = new AWS.S3();
 
-    this._speechBucket = speechBucket;
+    this._speechBucket = parseOption( "speechBucket", null, options );
 
     // probably not right?
-    this._urlBucketRoot = speechBucket;
+    this._urlBucketRoot = this._speechBucket;
 }
 
-function initPolly( pollyRegion, awsDefaults ){
-  var c = new AWS.SharedIniFileCredentials();
-  var options = {
-    "region" : pollyRegion
-  };
+function initPolly( options ){
   var p = new AWS.Polly( options );
   return p;
 }
@@ -183,7 +179,13 @@ pp.describeVoices = function( callback, language ){
     ]
    }
    */
-  this._polly.describeVoices( params, callback );
+  this._polly.describeVoices( params, function(err,data){
+    if(err) callback(err);
+    else {
+      // TODO: pagination using NextToken field, if necessary
+      callback( null, data["Voices"] );
+    }
+  });
 
 }; 
 
