@@ -11,10 +11,10 @@ function PollyS3( speechBucket ){
     this._polly = new AWS.Polly( awsDefaults );
     this._s3 = new AWS.S3( awsDefaults );
 
-    this.speechBucket = speechBucket;
+    this._speechBucket = speechBucket;
 
     // probably not right?
-    this.urlBucketRoot = speechBucket;
+    this._urlBucketRoot = speechBucket;
 }
 
 var pp = PollyS3.prototype;
@@ -36,7 +36,7 @@ function keyForSentence( sentence, voice ){
 
 
 function bucketURLForKey( key ){
-    return this.urlBucketRoot + key;
+    return this._urlBucketRoot + key;
 }
 
 
@@ -104,7 +104,7 @@ pp.renderSentence = function( sentence, callback, voice ){
     // before rendering, check if this sentence is already in S3
     this._s3.headObject( 
         {
-            Bucket: this.speechBucket,
+            Bucket: this._speechBucket,
             Key: filename
         },
         function( err, data ) {
