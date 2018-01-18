@@ -1,6 +1,6 @@
 {
   "name": "polly-s3",
-  "main": "./src/polly",
+  "main": "./src/polly-s3",
   "version": "0.0.1",
   "description": "polly-s3 - A library which uses AWS Polly to render text to speech to audio files in an S3 bucket.",
   "homepage": "https://github.com/prehensile/polly-s3",
