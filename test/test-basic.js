@@ -39,6 +39,8 @@ var schemaVoiceList = {
     }
 };
 
+var english_langauges = [ "en-GB", "en-US", "en-AU", "en-IN", "en-GB-WLS" ];
+
 
 describe('Basic tests', function() {
   
@@ -57,7 +59,7 @@ describe('Basic tests', function() {
     
     var p = new PollyS3();
     
-    p.describeVoices( [ "en-GB", "en-US", "en-AU", "en-IN", "en-GB-WLS" ], function( err, data ){
+    p.describeVoices( english_langauges, function( err, data ){
         if( err ) throw( err );
         expect( data ).to.be.jsonSchema( schemaVoiceList );
         done();
@@ -69,6 +71,18 @@ describe('Basic tests', function() {
     var p = new PollyS3();
     
     p.randomVoice( null, function( err, data ){
+        if( err ) throw( err );
+        console.log( data );
+        expect( data ).to.be.jsonSchema( schemaVoice );
+        done();
+    });
+  });
+
+  it('should return a random english voice', function(done){
+    
+    var p = new PollyS3();
+    
+    p.randomVoice( english_langauges, function( err, data ){
         if( err ) throw( err );
         console.log( data );
         expect( data ).to.be.jsonSchema( schemaVoice );
