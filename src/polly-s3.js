@@ -105,7 +105,7 @@ var pp = PollyS3.prototype;
  *  @param {String} sentence the sentence to render.
  *  @param {String} voice the voice to use for this sentence.
  */
-pp.renderSentence = function( sentence, callback, voice ){
+pp.renderSentence = function( sentence, voice, callback ){
     
     if( !voice ) voice = this.defaultVoice;
     var filename = keyForSentence( sentence, voice ) + ".mp3";
@@ -151,12 +151,55 @@ pp.renderSentence = function( sentence, callback, voice ){
     );
 };
 
-pp.describeVoices = function( callback, language ){
+_describeVoices = function( polly, params, callback ){
+  debugger;
+  polly.describeVoices( params, function(err,data){
+    if(err) callback(err);
+    else {
+      // TODO: pagination using NextToken field, if necessary
+      callback( null, data.Voices );
+    }
+  });
+};
+
+pp.describeVoices = function( language, callback ){
 
     var params = {};
     if( language ){
         params[ "LanguageCode" ] = language;
     }
+
+    if(language instanceof Array){
+      // multiple languages specified, fetch them all
+      var _p = this._polly;
+
+      var fetch_language = function( voices, language_index ){
+       if(language_index > -1){
+
+          var this_language = language[language_index];
+
+          params[ "LanguageCode" ] = this_language;
+          _describeVoices( _p, params, function(err,data){
+            if( err ) callback( err );
+            else {
+              // console.log( data );
+              voices = voices.concat( data );
+              fetch_language( voices, language_index-1 );
+            }
+          });
+
+        } else {
+          callback( null, voices );
+        }
+      };
+
+      fetch_language( [], language.length-1 );
+
+    } else {
+      // one language specified, just do a nice simple call
+      _describeVoices( this._polly, params, callback );
+    }
+
 
     /*
    data = {
@@ -185,14 +228,18 @@ pp.describeVoices = function( callback, language ){
     ]
    }
    */
-  this._polly.describeVoices( params, function(err,data){
+  
+   
+}; 
+
+pp.randomVoice = function( language, callback ){
+  this.describeVoices( language, function(err,data){
     if(err) callback(err);
     else {
-      // TODO: pagination using NextToken field, if necessary
-      callback( null, data["Voices"] );
+      var voice = data[ Math.floor(Math.random()*data.length) ];
+      callback( null, voice );
     }
   });
-
-}; 
+};
 
 module.exports = PollyS3;
