@@ -7,16 +7,24 @@ function parseOption( optionKey, defaultValue, options ){
 
 function PollyS3( options ){
     
-    options = initOptions( options );
+    options = preprocessOptions( options );
 
     this._polly = new AWS.Polly( options );
     this._s3 = new AWS.S3( options );
 
     this._speechBucket = options.s3Bucket;
     this.defaultVoice = parseOption( "voice", "Brian", options );
+
+    this._hashFilenames = true;
+    if( 'humanReadableFilenames' in options ){
+      this._hashFilenames = !options[ 'humanReadableFilenames' ];
+    }
 }
 
-function initOptions( options ){
+/**
+ * Preprocess an options object and fill out some defaults.
+ */
+function preprocessOptions( options ){
   if( !options ) options = {};
 
   // try to get region from standard AWS env if we don't have one
@@ -71,7 +79,7 @@ const volume = "+20dB";
 function renderSentenceForRealsies( polly, s3, bucket, sentence, voice, filename, callback ){
     
     // wrap text in prosody element to boost volume to match alexa's voice
-    sentence = `<speak><prosody volume='${volume}'>${sentence}</prosody></speak>`;
+    // sentence = `<speak><prosody volume='${volume}'>${sentence}</prosody></speak>`;
     
     polly.synthesizeSpeech(
         {
