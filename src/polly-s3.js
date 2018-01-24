@@ -1,4 +1,7 @@
 var AWS = require('aws-sdk');
+var hash = require('hash.js');
+var xml2js = require('xml2js');
+
 
 function parseOption( optionKey, defaultValue, options ){
   if( options && optionKey in options ) return optionKey;
@@ -17,7 +20,7 @@ function PollyS3( options ){
 
     this._hashFilenames = true;
     if( 'humanReadableFilenames' in options ){
-      this._hashFilenames = !options[ 'humanReadableFilenames' ];
+      this._hashFilenames != options[ 'humanReadableFilenames' ];
     }
 }
 
@@ -47,8 +50,13 @@ function preprocessOptions( options ){
  *  @param {String} voice the voice to use for this sentence.
  *  @returns {String} a key to use to store the rendered speech in an S3 bucket.
  */
-function keyForSentence( sentence, voice ){
+function keyForSentence( sentence, voice, useHash ){
     var s = voice + sentence;
+    if( useHash ){
+      // if _hashFilenames is set (the default), return a hash of the voice and text for the filename
+      return hash.sha1().update(s).digest('hex');
+    }
+    // otherwise, return a shorter (but still human-readableish) filename by removing vowels
     return s.toLowerCase().replace(/[^bcdfghjklmnpqrstvwxyz]/g,'');
 }
 
@@ -81,12 +89,17 @@ function renderSentenceForRealsies( polly, s3, bucket, sentence, voice, filename
     // wrap text in prosody element to boost volume to match alexa's voice
     // sentence = `<speak><prosody volume='${volume}'>${sentence}</prosody></speak>`;
     
+    var textType = 'text';
+    // TODO: maybe use a real XML parser for this?
+    if( sentence.indexOf('<speak>') > -1 )
+      textType = 'ssml';
+
     polly.synthesizeSpeech(
         {
             OutputFormat : "mp3",
             Text : sentence,
             VoiceId : voice,
-            TextType: "ssml"
+            TextType: textType
         },
         function( err, data ){
             if( err ) callback( err );
@@ -116,7 +129,7 @@ var pp = PollyS3.prototype;
 pp.renderSentence = function( sentence, voice, callback ){
     
     if( !voice ) voice = this.defaultVoice;
-    var filename = keyForSentence( sentence, voice ) + ".mp3";
+    var filename = keyForSentence( sentence, voice, this._hashFilenames ) + ".mp3";
     var ref = this;
     var bucket = this._speechBucket;
 

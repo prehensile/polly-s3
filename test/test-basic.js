@@ -90,13 +90,29 @@ describe('Basic tests', function() {
     });
   });
 
-  it('should return a URL for a call to renderSentence', function(done){
+  it('should return a URL for a call to renderSentence when sentence is plaintext', function(done){
 
     var p = new PollyS3();
     var sentence = "Is this thing on?";
 
     p.renderSentence( sentence, null, function( err, url ){
         if( err ) throw(err);
+        console.log( url );
+        // TODO: more detailed testing of url?
+        expect( url ).to.contain.hostname( 'amazonaws.com' );
+        expect( url ).to.contain.path( 'mp3' );
+        done();
+    });
+  });
+
+  it('should return a URL for a call to renderSentence when sentence is SSML', function(done){
+
+    var p = new PollyS3();
+    var sentence = "<speak>Is this thing on?</speak>";
+
+    p.renderSentence( sentence, null, function( err, url ){
+        if( err ) throw(err);
+        console.log( url );
         // TODO: more detailed testing of url?
         expect( url ).to.contain.hostname( 'amazonaws.com' );
         expect( url ).to.contain.path( 'mp3' );
