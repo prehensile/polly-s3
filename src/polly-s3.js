@@ -96,6 +96,7 @@ function renderSentenceForRealsies( polly, s3, bucket, sentence, voice, filename
 
     polly.synthesizeSpeech(
         {
+            // TODO: expose OutputFormat as a function argument
             OutputFormat : "mp3",
             Text : sentence,
             VoiceId : voice,
