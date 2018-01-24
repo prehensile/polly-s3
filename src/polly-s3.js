@@ -173,7 +173,6 @@ pp.renderSentence = function( sentence, voice, callback ){
 };
 
 _describeVoices = function( polly, params, callback ){
-  debugger;
   polly.describeVoices( params, function(err,data){
     if(err) callback(err);
     else {
