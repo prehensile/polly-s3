@@ -84,7 +84,7 @@ function itPutsTheStreamInTheBucket( s3, bucket, stream, key, contentType, callb
 
 const volume = "+20dB";
 
-function renderSentenceForRealsies( polly, s3, bucket, sentence, voice, filename, callback ){
+function onRenderSentenceComplete( polly, s3, bucket, sentence, voice, filename, callback ){
     
     // wrap text in prosody element to boost volume to match alexa's voice
     // sentence = `<speak><prosody volume='${volume}'>${sentence}</prosody></speak>`;
@@ -146,7 +146,7 @@ pp.renderSentence = function( sentence, voice, callback ){
                 if( err.code == 'NotFound' ){
                   // object doesn't exist, so render it 
                   // console.log( "Object does not exist in bucket [", bucket, "] for key [", filename, "], generating..." );
-                  renderSentenceForRealsies(
+                  onRenderSentenceComplete(
                     ref._polly,
                     ref._s3,
                     bucket,
@@ -173,7 +173,7 @@ pp.renderSentence = function( sentence, voice, callback ){
     );
 };
 
-_describeVoices = function( polly, params, callback ){
+onDescribeVoicesComplete = function( polly, params, callback ){
   polly.describeVoices( params, function(err,data){
     if(err) callback(err);
     else {
@@ -200,7 +200,7 @@ pp.describeVoices = function( language, callback ){
           var this_language = language[language_index];
 
           params[ "LanguageCode" ] = this_language;
-          _describeVoices( _p, params, function(err,data){
+          onDescribeVoicesComplete( _p, params, function(err,data){
             if( err ) callback( err );
             else {
               // console.log( data );
@@ -218,7 +218,7 @@ pp.describeVoices = function( language, callback ){
 
     } else {
       // one language specified, just do a nice simple call
-      _describeVoices( this._polly, params, callback );
+      onDescribeVoicesComplete( this._polly, params, callback );
     }
 
 
