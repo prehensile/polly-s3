@@ -135,8 +135,8 @@ var pp = PollyS3.prototype;
 /**
  *  Render some speech.
  *
- *  @param {String} sentence the sentence to render.
- *  @param {String} voice the voice to use for this sentence.
+ *  @param {String} sentence the sentence to render. Can be plain text or SSML.
+ *  @param {String} voice the voice to use for this sentence. Can be null; defaults to 'Brian'.
  *  @param {function} callback for when the render operation completes.
  */
 pp.renderSentence = function( sentence, voice, callback ){
@@ -203,9 +203,9 @@ onDescribeVoicesComplete = function( polly, params, callback ){
  * Returns data as described in the AWS Polly docs:
  *  https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Polly.html#describeVoices-property
  *
- *  @param {String|String[]} the language which voices to list, e.g. `en-US`.
+ *  @param {String|String[]} language the language which voices to list, e.g. `en-US`.
  *    Can be a single string or an array, e.g. [ 'en-GB', 'en-US', 'en-AU', 'en-IN', 'en-GB-WLS' ] for all English voices.
- *  @param {function} callback for when the Polly operation completes.
+ *  @param {function} callback callback for when the Polly operation completes.
  */
 pp.describeVoices = function( language, callback ){
 
@@ -284,8 +284,8 @@ pp.describeVoices = function( language, callback ){
  * Returns data as described in the AWS Polly docs:
  *  https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Polly.html#describeVoices-property
  *
- *  @param {String} the language whose voices we want a random voice from, e.g. `en-US`
- *  @param {function} callback for when the Polly operation completes.
+ *  @param {String} language the language whose voices we want a random voice from, e.g. `en-US`
+ *  @param {function} callback callback for when the Polly operation completes.
  */
 pp.randomVoice = function( language, callback ){
   this.describeVoices( language, function(err,data){
