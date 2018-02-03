@@ -8,6 +8,7 @@ function parseOption( optionKey, defaultValue, options ){
   return defaultValue;
 }
 
+
 function PollyS3( options ){
     
     options = preprocessOptions( options );
@@ -23,6 +24,7 @@ function PollyS3( options ){
       this._hashFilenames != options[ 'humanReadableFilenames' ];
     }
 }
+
 
 /**
  * Preprocess an options object and fill out some defaults.
@@ -40,6 +42,7 @@ function preprocessOptions( options ){
   
   return options;
 }
+
 
 /**
  *  Generate an S3 key for rendered speech.
@@ -61,6 +64,13 @@ function keyForSentence( sentence, voice, useHash ){
 }
 
 
+/**
+ * Generate an S3 URL for a given key in a given bucket.
+ * 
+ * @param {String} name of the S3 bucket containing the key
+ * @param {String} key for the object whose URL we want
+ * @returns {String} a URL for an object identfied by key in S3 bucket
+ */
 function bucketURLForKey( bucket, key ){
     // TODO: I am suspicious about generating URLs this way,
     // but according to AWS docs it should work, see:
@@ -121,11 +131,13 @@ function onRenderSentenceComplete( polly, s3, bucket, sentence, voice, filename,
 
 var pp = PollyS3.prototype;
 
+
 /**
  *  Render some speech.
  *
  *  @param {String} sentence the sentence to render.
  *  @param {String} voice the voice to use for this sentence.
+ *  @param {function} callback for when the render operation completes.
  */
 pp.renderSentence = function( sentence, voice, callback ){
     
@@ -173,6 +185,7 @@ pp.renderSentence = function( sentence, voice, callback ){
     );
 };
 
+
 onDescribeVoicesComplete = function( polly, params, callback ){
   polly.describeVoices( params, function(err,data){
     if(err) callback(err);
@@ -183,6 +196,17 @@ onDescribeVoicesComplete = function( polly, params, callback ){
   });
 };
 
+
+/**
+ * List Polly voices for a given language.
+ * 
+ * Returns data as described in the AWS Polly docs:
+ *  https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Polly.html#describeVoices-property
+ *
+ *  @param {String|String[]} the language which voices to list, e.g. `en-US`.
+ *    Can be a single string or an array, e.g. [ 'en-GB', 'en-US', 'en-AU', 'en-IN', 'en-GB-WLS' ] for all English voices.
+ *  @param {function} callback for when the Polly operation completes.
+ */
 pp.describeVoices = function( language, callback ){
 
     var params = {};
@@ -253,6 +277,16 @@ pp.describeVoices = function( language, callback ){
    
 }; 
 
+
+/**
+ * Fetch description for one voice, chosen at random from all in a given language
+ * 
+ * Returns data as described in the AWS Polly docs:
+ *  https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Polly.html#describeVoices-property
+ *
+ *  @param {String} the language whose voices we want a random voice from, e.g. `en-US`
+ *  @param {function} callback for when the Polly operation completes.
+ */
 pp.randomVoice = function( language, callback ){
   this.describeVoices( language, function(err,data){
     if(err) callback(err);
@@ -262,5 +296,6 @@ pp.randomVoice = function( language, callback ){
     }
   });
 };
+
 
 module.exports = PollyS3;
