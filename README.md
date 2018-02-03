@@ -2,9 +2,11 @@
 
 ## Overview
 
-__polly-s3__ is a node.js module which renders text-to-speech using AWS Polly and saves it in an S3 bucket.
+__polly-s3__ is a node.js module which renders text-to-speech using [AWS Polly](https://aws.amazon.com/polly/) and saves it to an audio file in an S3 bucket.
 
 You can use this module to render Polly speech on-the-fly for use in voice applications. If the S3 bucket has a public access policy, the rendered speech will be available at an HTTPS URL, suitable for use in an Alexa skill.
+
+So far it has mostly been used in AWS Lambda functions - an understanding of how to run code in an AWS context will come in handy while using this module.
 
 ## Install
 
@@ -13,11 +15,12 @@ You can use this module to render Polly speech on-the-fly for use in voice appli
 ## Usage
 
 ### ⚠ Configuration
-️__polly-s3__ requires some configuration to be set before it will work properly.
+
+__polly-s3__ requires some configuration to be set before it will work properly.
 
 The name of an S3 bucket to hold rendered speech files needs to be set in either an environment variable named `AWS_S3_DEFAULT_BUCKET` or passed in an options object to `new PollyS3()`, e.g `new PollyS3({ s3Bucket : 'someBucketName' })`. 
 
-polly-s3 also needs to use an __AWS IAM role__ which has rights to both __use Polly__ and __write to the specified S3 bucket__. If running on AWS Lambda, you can create this IAM role and assign it to the Lambda function. If running elsewhere, you'll need to provide credentials using one of the methods described in the [AWS SDK for JavaScript docs](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html).
+__polly-s3__ also needs to use an __AWS IAM role__ which has rights to both __use Polly__ and __write to the specified S3 bucket__. If running on AWS Lambda, you can create this IAM role and assign it to the Lambda function. If running elsewhere, you'll need to provide credentials using one of the methods described in the [AWS SDK for JavaScript docs](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html).
 
 Similarly, the AWS region needs to be set. Information about that is also in the [AWS SDK for JavaScript docs](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-region.html).
 
